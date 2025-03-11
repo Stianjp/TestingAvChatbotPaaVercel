@@ -1,0 +1,300 @@
+/* Hovedcontainer */
+.chat-container {
+  width: 95%; /* Bruk prosent for responsiv bredde */
+  max-width: 600px;
+  height: auto; /* Gjør høyden mer fleksibel */
+  min-height: 70vh;
+  margin: 20px auto;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background-color: white;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Header med logo og dato */
+.chat-header {
+  text-align: center;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  flex-shrink: 0; /* Prevents the header from shrinking */
+}
+
+.logo {
+  width: 100%;
+  max-width: 300px; /* Setter en maksgrense for store skjermer */
+}
+
+.chat-date {
+  color: #666;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+/* Chat-meldinger */
+.chatbot-messages {
+  flex-grow: 1; /* This makes the chat messages area take up remaining space */
+  overflow-y: auto;   /* Enables vertical scrolling */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Optional: Smooth scrolling for better UX */
+.chatbot-messages::-webkit-scrollbar {
+  width: 6px;
+}
+.chatbot-messages::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 3px;
+}
+
+.chat-bubble {
+  margin: 5px 0;
+  overflow-wrap: anywhere;  /* Fits all possible lenght of content inside the box */
+  max-width: 90%;
+}
+
+.chat-bubble.bot {
+  background-color: #e0e0e0;
+  color: #333;
+  padding: 15px;
+  border-radius: 15px;
+  max-width: 80%;
+  position: relative;
+}
+
+.chat-bubble.bot::before, .chat-bubble.bot::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+}
+
+/* Creating figures on top of eachother for a curved tip illusion to the bottom left corner*/
+.chat-bubble.bot::before {
+  left: -6px;
+  height: 20px;
+  width: 20px;
+  background: #e0e0e0;
+  border-bottom-right-radius: 15px;
+}
+.chat-bubble.bot::after {
+  left: -10px;
+  width: 10px;
+  height: 22px;
+  background: white;
+  border-bottom-right-radius: 10px;
+}
+
+.chat-bubble.user {
+  background-color: #ff5100;
+  color: white;
+  padding: 15px;
+  border-radius: 15px;
+  max-width: 80%;
+  margin-right: 15px;
+  position: relative;
+}
+
+.chat-bubble.user::before, .chat-bubble.user::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+}
+
+/* Creating figures on top of eachother for a curved tip illusion to the bottom right corner*/
+.chat-bubble.user::before {
+  right: -6px;
+  height: 20px;
+  width: 20px;
+  background: linear-gradient(to bottom, #ff5100 0%, #ff5100 80%);
+  border-bottom-left-radius: 15px;
+}
+
+.chat-bubble.user::after {
+  right: -10px;
+  width: 10px;
+  height: 22px;
+  background: white;
+  border-bottom-left-radius: 10px;
+}
+
+/* Inputfelt */
+.chat-input {
+  display: flex;
+  justify-content: space-between; /* Sørger for at elementene plasseres med maks avstand */
+  align-items: center;
+  padding: 10px;
+  border-top: 1px solid #ddd;
+  background: white;
+  flex-shrink: 0; /* Prevents the input area from shrinking */
+}
+
+.chat-input textarea {
+  flex: 1; /* Lar input-feltet ta opp mest mulig plass */
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  font-size: 14px;
+  margin-right: 10px;
+  font-family: inherit; /* Bruk samme font som resten av UI-et */
+  font-weight: normal; /* Sikre at den ikke blir for tynn eller tykk */
+}
+
+.chat-input button {
+  background: #ff5100;
+  border: none;
+  margin-right: 1%;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-input button:hover{
+  background-color: rgb(187, 59, 0);
+}
+
+
+.consent-buttons{
+  display: flex; /* Bruker flex */
+  justify-content: center; /* Sentrerer knappene horisontalt */
+  gap: 15px; /* Avstand mellom knappene */
+  margin: 20px auto; /* Sørger for at containeren også er sentrert */
+  width: fit-content; /* Hindrer at containeren blir for bred */ 
+  margin-bottom: 30%; /* Midtstiller knappene vertikalt på siden */
+}
+
+.accept, .decline {
+  background-color: white;
+  padding: 10px 15px;
+  border-radius: 10px;
+  border: 2px solid black;
+  font-size: 16px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.accept:hover, .decline:hover {
+  background-color: #ff5100;
+}
+.chat-message {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Avstand mellom bilde og tekst */
+}
+
+.bot-avatar {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  margin-left: 2%;
+}
+/* Bot-meldinger */
+.chat-message.bot {
+  justify-content: flex-start;
+}
+/* Bruker-meldinger */
+.chat-message.user {
+  justify-content: flex-end;
+}
+.bot-avatar-placeholder {
+  width: 10px; /* Samme bredde som bot-avatar */
+  height: 35px;
+  visibility: hidden; /* Holder plassen, men skjuler elementet */
+}
+.typing-bubble {
+  margin-left: 20px;
+  display: flex;
+  gap: 4px;
+  padding: 10px;
+  background: #e0e0e0;
+  border-radius: 15px;
+  width: 30px;
+  align-self: flex-start;
+  margin-bottom: 5px;
+}
+
+.typing-bubble span {
+  width: 8px;
+  height: 8px;
+  background: gray;
+  border-radius: 50%;
+  animation: typingAnimation 1.5s infinite ease-in-out;
+}
+.restart-chat {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.restart-button {
+  background-color: #ff5100;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+  margin-bottom: 10px;
+}
+
+.restart-button:hover {
+  background-color: rgb(187, 59, 0);
+}
+
+
+.typing-bubble span:nth-child(1) { animation-delay: 0s; }
+.typing-bubble span:nth-child(2) { animation-delay: 0.2s; }
+.typing-bubble span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingAnimation {
+  0%, 100% { opacity: 0.3; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-5px); }
+}
+/* RESPONSIVITET */
+@media (max-width: 768px) {
+  .chat-container {
+    width: 95%;
+    height: 94vh;
+  }
+  
+  .chat-bubble {
+    max-width: 90%;
+  }
+  
+  .logo {
+    width: 70%;
+  }
+  
+  .chat-input textarea {
+    font-size: 14px;
+    padding: 8px;
+  }
+
+  .chat-input button {
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+  }
+  
+  .chatbot-messages {
+    padding: 5px; /* Redusert padding for bedre plassutnyttelse */
+  }
+  .consent-buttons {
+    flex-direction: column; /* Stabler knappene vertikalt */
+    gap: 10px;
+  }
+
+  .accept, .decline {
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+}
