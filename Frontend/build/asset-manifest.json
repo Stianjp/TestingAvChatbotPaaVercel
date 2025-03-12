@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/static/css/main.57a34858.css",
-    "main.js": "/static/js/main.14c197f5.js",
+    "main.js": "/static/js/main.7fc69c1b.js",
     "static/media/logo.png": "/static/media/logo.8a7f010572e285a32a45.png",
     "static/media/MH_logo.png": "/static/media/MH_logo.b75aef1e8f9183433c37.png",
     "index.html": "/index.html",
     "main.57a34858.css.map": "/static/css/main.57a34858.css.map",
-    "main.14c197f5.js.map": "/static/js/main.14c197f5.js.map"
+    "main.7fc69c1b.js.map": "/static/js/main.7fc69c1b.js.map"
   },
   "entrypoints": [
     "static/css/main.57a34858.css",
-    "static/js/main.14c197f5.js"
+    "static/js/main.7fc69c1b.js"
   ]
 }
