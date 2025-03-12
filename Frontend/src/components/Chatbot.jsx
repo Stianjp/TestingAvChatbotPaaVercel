@@ -184,4 +184,16 @@ const Chatbot = () => {
   );
 };
 
+/**
+ * Konverterer meldingshistorikk til riktig format for GPT
+ * @param {Array} allMessages - Liste med meldinger
+ * @returns {Array} - GPT-formatert meldingshistorikk
+ */
+function buildConversationForGPT(allMessages) {
+  return allMessages.map((m) => ({
+    role: m.sender === "bot" ? "assistant" : "user",
+    content: m.text,
+  }));
+}
+
 export default Chatbot;
