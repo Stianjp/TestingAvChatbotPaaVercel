@@ -28,6 +28,9 @@ const Chatbot = () => {
   const [isFinishingChat, setIsFinishingChat] = useState(false);
   const [copySuccess, setCopySuccess] = useState("");
   const [questionCount, setQuestionCount] = useState(0);
+  const [phase, setPhase] = useState(1);
+  const [hoverText, setHoverText] = useState("Klikk for å kopiere ID");
+  const [hoverXbottom, setHoverXbottom] = useState("Klikk for å avslutte samtalen");
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -91,6 +94,7 @@ const Chatbot = () => {
     setMessages((prev) => [...prev, userMessage]);
     saveMessage(userMessage);
     setInput("");
+    inputRef.current.style.height = "30px";
 
     setIsTyping(true);
 
@@ -101,8 +105,19 @@ const Chatbot = () => {
         userMessage,
       ]);
 
-      let systemPrompt = questionCount < 5 ? phaseOnePrompt : phaseTwoPrompt;
+      let systemPrompt = phaseOnePrompt;
+      if (phase === 2) {
+        systemPrompt = phaseTwoPrompt;
+      }
+
       botReply = await askChatbot(conversationMessages, systemPrompt);
+
+      const newAssistantCount = countAssistantMessages([...messages, { sender: "bot", text: botReply }], phase);
+
+      if (phase === 1 && newAssistantCount >= 8) {
+        console.log("Bytter til fase 2...");
+        setPhase(2);
+      }
 
       setMessages((prev) => [...prev, { sender: "bot", text: botReply }]);
       saveMessage({ sender: "bot", text: botReply });
@@ -112,6 +127,12 @@ const Chatbot = () => {
       setLoading(false);
     }, 500);
   };
+
+  useEffect(() => {
+    if (phase === 2) {
+      console.log("Fase 2 er aktivert! Bytter til dyp motivasjonsanalyse.");
+    }
+  }, [phase]);
 
   const saveMessage = async (message) => {
     if (!chatId || consent === false) {
@@ -154,6 +175,15 @@ const Chatbot = () => {
     setChatEnded(true);
   };
 
+  const restartChat = async () => {
+    setChatId(null);
+    setConsent(null);
+    setChatEnded(false);
+    setIsFinishingChat(false);
+    setMessages([{ sender: "bot", text: initialMessage }]);
+    startNewChat();
+  };
+
   const scrollToBottom = () => {
     if (messagesEndRef.current)
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -161,6 +191,8 @@ const Chatbot = () => {
 
   const handleInputChange = (e) => {
     setInput(e.target.value);
+    e.target.style.height = "30px";
+    e.target.style.height = `${e.target.scrollHeight}px`;
   };
 
   const copyToClipboard = () => {
@@ -179,67 +211,89 @@ const Chatbot = () => {
     <div className="chat-container">
       <header className="chat-header">
         <img src={logo} alt="MeyerHaugen" className="logo" />
+        <p className="chat-date">
+          {new Date().toLocaleDateString("no-NO", { weekday: "long", day: "numeric", month: "long" })}
+        </p>
         {chatId && (
-          <p className="chat-id" onClick={copyToClipboard} style={{ cursor: "pointer" }}>
-            Chat-ID: {chatId} (Klikk for å kopiere)
+          <p
+            className="chat-id"
+            onClick={copyToClipboard}
+            title={hoverText}
+            style={{ cursor: "pointer" }}
+          >
+            Chat ID: <span style={{textDecoration: "underline" }}>{chatId}</span> 
           </p>
         )}
-        {copySuccess && <p className="copy-success">{copySuccess}</p>}
-        <p className="chat-date">
-          {new Date().toLocaleDateString("no-NO", {
-            weekday: "long",
-            day: "numeric",
-            month: "long",
-          })}
-        </p>
       </header>
 
       <div className="chatbot-messages">
         {messages.map((msg, i) => (
           <div key={i} className={`chat-message ${msg.sender}`}>
-            {msg.sender === "bot" && (
-              <img src={miniLogo} alt="Bot" className="bot-avatar" />
-            )}
+            {msg.sender === "bot" ? (
+              i === messages.length - 1 ? (
+                <img src={miniLogo} alt="Bot" className="bot-avatar" />
+              ) : (
+                <div className="bot-avatar-placeholder"></div>
+              )
+            ) : null}
             <div className={`chat-bubble ${msg.sender}`}>{msg.text}</div>
           </div>
         ))}
+
+        {isTyping && (
+          <div className="typing-bubble">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        )}
+
         <div ref={messagesEndRef} />
       </div>
 
-      {consent === null && (
-        <div className="consent-buttons">
-          <button className="accept" onClick={() => handleConsent(true)}>
-            Godta
-          </button>
-          <button className="decline" onClick={() => handleConsent(false)}>
-            Avslå
+      {chatEnded && (
+        <div className="restart-chat">
+          <button className="restart-button" onClick={restartChat}>
+                Start ny samtale
           </button>
         </div>
       )}
 
-      {consent !== null && !chatEnded && (
-        <div className="chat-input">
-          <textarea
-            ref={inputRef}
-            placeholder="Skriv melding her"
-            value={input}
-            onChange={handleInputChange}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-              }
-            }}
-            disabled={loading}
-            rows={1}
-          />
-          <button onClick={sendMessage} disabled={loading}>
-            ➤
-          </button>
-          <button onClick={finishChat} disabled={isFinishingChat}>
-            <IoClose />
-          </button>
+      {consent === null && (
+        <div className="consent-buttons">
+          <button className="accept" onClick={() => handleConsent(true)}>Godta</button>
+          <button className="decline" onClick={() => handleConsent(false)}>Avslå</button>
         </div>
+      )}
+
+      {consent !== null && (
+          <div className="chat-input">
+              <textarea
+                  ref={inputRef}
+                  placeholder="Skriv melding her"
+                  value={input}
+                  onChange={handleInputChange}
+                  onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          if (!chatEnded) sendMessage(); // Kun send hvis chat ikke er avsluttet
+                      }
+                  }}
+                  disabled={loading || chatEnded} // Deaktivert hvis chat er avsluttet
+                  rows={1}
+                  style={{ resize: "none", minHeight: "30px", maxHeight: "200px", overflowY: "auto" }}
+              />
+              <button onClick={sendMessage} disabled={loading || chatEnded}>
+                  ➤
+              </button>
+              <button 
+                  onClick={finishChat} 
+                  title={hoverXbottom}
+                  disabled={isFinishingChat} // Deaktiver knappen etter første trykk
+                  >                         
+                  <IoClose />
+              </button>
+          </div>
       )}
     </div>
   );
@@ -250,6 +304,16 @@ function buildConversationForGPT(allMessages) {
     role: m.sender === "bot" ? "assistant" : "user",
     content: m.text,
   }));
+}
+
+function countAssistantMessages(allMessages, currentPhase) {
+  let count = 0;
+  for (const msg of allMessages) {
+    if (msg.sender === "bot") {
+      count++;
+    }
+  }
+  return count;
 }
 
 export default Chatbot;
