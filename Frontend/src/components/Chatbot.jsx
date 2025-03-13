@@ -26,6 +26,7 @@ const Chatbot = () => {
   const [chatId, setChatId] = useState(null);
   const [chatEnded, setChatEnded] = useState(false);
   const [isFinishingChat, setIsFinishingChat] = useState(false);
+  const [copySuccess, setCopySuccess] = useState("");
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -47,10 +48,6 @@ const Chatbot = () => {
       if (error) throw error;
 
       setChatId(data.id);
-      setMessages(prev => [
-        ...prev,
-        { sender: "bot", text: `✅ Din Chat-ID er: ${data.id}` },
-      ]);
       console.log("✅ Ny samtale startet med ID:", data.id);
     } catch (error) {
       console.error("❌ Feil ved oppstart av chat:", error);
@@ -164,11 +161,28 @@ const Chatbot = () => {
     setInput(e.target.value);
   };
 
-  // Return og UI er som tidligere.
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(chatId).then(
+      () => {
+        setCopySuccess("Chat-ID kopiert!");
+        setTimeout(() => setCopySuccess(""), 2000);
+      },
+      (err) => {
+        console.error("Feil ved kopiering av Chat-ID:", err);
+      }
+    );
+  };
+
   return (
     <div className="chat-container">
       <header className="chat-header">
         <img src={logo} alt="MeyerHaugen" className="logo" />
+        {chatId && (
+          <p className="chat-id" onClick={copyToClipboard} style={{ cursor: "pointer" }}>
+            Chat-ID: {chatId} (Klikk for å kopiere)
+          </p>
+        )}
+        {copySuccess && <p className="copy-success">{copySuccess}</p>}
         <p className="chat-date">
           {new Date().toLocaleDateString("no-NO", {
             weekday: "long",
