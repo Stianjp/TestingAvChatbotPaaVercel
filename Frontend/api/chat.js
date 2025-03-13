@@ -18,7 +18,7 @@ module.exports = async (req, res) => {
     }
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o", // Endre til din ønskede GPT-modell
+      model: "gpt-4", // Endre til din ønskede GPT-modell
       messages: [{ role: "user", content: message }]
     });
 

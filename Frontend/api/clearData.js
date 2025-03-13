@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 
 const router = express.Router();
-const filePath = path.join("data", "userData.json");
+const filePath = path.join(process.cwd(), "data", "userData.json"); // Ensure correct path resolution
 
 // Endepunkt for å tømme `userData.json`
 router.post("/", (req, res) => {
