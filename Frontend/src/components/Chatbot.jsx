@@ -10,13 +10,15 @@ import { askChatbot } from "../utils/langchainChatbot";
 import logo from "../media/logo.png";
 import miniLogo from "../media/MH_logo.png";
 import { IoClose } from "react-icons/io5";
-import { supabase } from '../supabaseClient';
+import { supabase } from "../supabaseClient";
 
 // Bruker miljøvariabel for API-kall
 const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
 
 const Chatbot = () => {
-  const [messages, setMessages] = useState([{ sender: "bot", text: initialMessage }]);
+  const [messages, setMessages] = useState([
+    { sender: "bot", text: initialMessage },
+  ]);
   const [consent, setConsent] = useState(null);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -29,22 +31,26 @@ const Chatbot = () => {
   const inputRef = useRef(null);
 
   useEffect(() => {
-    const initChat = async () => {
-      await clearData();
-      await startNewChat();
-    };
-  
-    initChat();
-  }, []);
+    if (consent) {
+      startNewChat();
+    }
+  }, [consent]);
 
   const startNewChat = async () => {
     try {
       const { data, error } = await supabase
-        .from('chats')
-        .insert([{ status: 'active' }])
+        .from("chats")
+        .insert([{ status: "active" }])
+        .select()
         .single();
+
       if (error) throw error;
+
       setChatId(data.id);
+      setMessages(prev => [
+        ...prev,
+        { sender: "bot", text: `✅ Din Chat-ID er: ${data.id}` },
+      ]);
       console.log("✅ Ny samtale startet med ID:", data.id);
     } catch (error) {
       console.error("❌ Feil ved oppstart av chat:", error);
@@ -56,26 +62,24 @@ const Chatbot = () => {
     if (inputRef.current) inputRef.current.focus();
   }, [messages]);
 
-  const clearData = async () => {
-    try {
-      const { error } = await supabase
-        .from('chats')
-        .delete()
-        .eq('status', 'active');
-      if (error) throw error;
-      console.log("✅ userData tømt");
-    } catch (error) {
-      console.error("❌ Feil ved tømming av userData:", error);
-    }
-  };
-
-  const handleConsent = (userConsent) => {
+  const handleConsent = async (userConsent) => {
     setConsent(userConsent);
-    const userMsg = { sender: "user", text: userConsent ? "Ja, jeg samtykker." : "Nei, jeg ønsker ikke lagring." };
-    const botMsg = { sender: "bot", text: "Tusen takk! Mitt navn er SoftAI, hva heter du?" };
+
+    const userMsg = {
+      sender: "user",
+      text: userConsent
+        ? "Ja, jeg samtykker."
+        : "Nei, jeg ønsker ikke lagring.",
+    };
+    const botMsg = {
+      sender: "bot",
+      text: "Tusen takk! Mitt navn er SoftAI, hva heter du?",
+    };
 
     setMessages((prev) => [...prev, userMsg, botMsg]);
+
     if (userConsent) {
+      await startNewChat();
       saveMessage(userMsg);
       saveMessage(botMsg);
     }
@@ -94,7 +98,10 @@ const Chatbot = () => {
 
     setTimeout(async () => {
       let botReply = "";
-      const conversationMessages = buildConversationForGPT([...messages, userMessage]);
+      const conversationMessages = buildConversationForGPT([
+        ...messages,
+        userMessage,
+      ]);
 
       let systemPrompt = phaseTwoPrompt;
       botReply = await askChatbot(conversationMessages, systemPrompt);
@@ -108,15 +115,16 @@ const Chatbot = () => {
   };
 
   const saveMessage = async (message) => {
-    if (!chatId) {
-      console.error("ChatId ikke klart ennå!");
+    if (!chatId || consent === false) {
+      console.warn("⚠️ Meldinger lagres ikke: enten chatId ikke klar eller ikke samtykket.");
       return;
     }
-  
+
     try {
       const { error } = await supabase
-        .from('messages')
+        .from("messages")
         .insert([{ chat_id: chatId, sender: message.sender, text: message.text }]);
+
       if (error) throw error;
     } catch (error) {
       console.error("❌ Feil ved lagring av melding:", error);
@@ -128,47 +136,54 @@ const Chatbot = () => {
     setIsFinishingChat(true);
 
     try {
-      if (consent === false) {
-        console.log("🚫 Samtale slettes pga. manglende samtykke.");
+      if (consent !== false && chatId) {
         const { error } = await supabase
-          .from('chats')
-          .delete()
-          .eq('id', chatId);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('chats')
-          .update({ status: 'finished' })
-          .eq('id', chatId);
+          .from("chats")
+          .update({ status: "finished" })
+          .eq("id", chatId);
+
         if (error) throw error;
       }
     } catch (error) {
-      console.error("❌ Feil ved sletting/lagring av samtale:", error);
+      console.error("❌ Feil ved oppdatering av samtalestatus:", error);
     }
 
-    setMessages((prev) => [...prev, { sender: "bot", text: "Takk for samtalen!😊 Ha en fin dag videre!" }]);
+    setMessages((prev) => [
+      ...prev,
+      { sender: "bot", text: "Takk for samtalen!😊 Ha en fin dag videre!" },
+    ]);
     setChatEnded(true);
   };
 
   const scrollToBottom = () => {
-    if (messagesEndRef.current) messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    if (messagesEndRef.current)
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
   };
 
   const handleInputChange = (e) => {
     setInput(e.target.value);
   };
 
+  // Return og UI er som tidligere.
   return (
     <div className="chat-container">
       <header className="chat-header">
         <img src={logo} alt="MeyerHaugen" className="logo" />
-        <p className="chat-date">{new Date().toLocaleDateString("no-NO", { weekday: "long", day: "numeric", month: "long" })}</p>
+        <p className="chat-date">
+          {new Date().toLocaleDateString("no-NO", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+          })}
+        </p>
       </header>
 
       <div className="chatbot-messages">
         {messages.map((msg, i) => (
           <div key={i} className={`chat-message ${msg.sender}`}>
-            {msg.sender === "bot" && <img src={miniLogo} alt="Bot" className="bot-avatar" />}
+            {msg.sender === "bot" && (
+              <img src={miniLogo} alt="Bot" className="bot-avatar" />
+            )}
             <div className={`chat-bubble ${msg.sender}`}>{msg.text}</div>
           </div>
         ))}
@@ -177,8 +192,12 @@ const Chatbot = () => {
 
       {consent === null && (
         <div className="consent-buttons">
-          <button className="accept" onClick={() => handleConsent(true)}>Godta</button>
-          <button className="decline" onClick={() => handleConsent(false)}>Avslå</button>
+          <button className="accept" onClick={() => handleConsent(true)}>
+            Godta
+          </button>
+          <button className="decline" onClick={() => handleConsent(false)}>
+            Avslå
+          </button>
         </div>
       )}
 
@@ -198,7 +217,9 @@ const Chatbot = () => {
             disabled={loading}
             rows={1}
           />
-          <button onClick={sendMessage} disabled={loading}>➤</button>
+          <button onClick={sendMessage} disabled={loading}>
+            ➤
+          </button>
           <button onClick={finishChat} disabled={isFinishingChat}>
             <IoClose />
           </button>
@@ -208,11 +229,6 @@ const Chatbot = () => {
   );
 };
 
-/**
- * Konverterer meldingshistorikk til riktig format for GPT
- * @param {Array} allMessages - Liste med meldinger
- * @returns {Array} - GPT-formatert meldingshistorikk
- */
 function buildConversationForGPT(allMessages) {
   return allMessages.map((m) => ({
     role: m.sender === "bot" ? "assistant" : "user",
