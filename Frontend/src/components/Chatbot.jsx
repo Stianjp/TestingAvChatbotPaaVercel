@@ -1,6 +1,5 @@
 // src/components/Chatbot.jsx
 import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
 import {
   initialMessage,
   phaseOnePrompt,
@@ -11,6 +10,7 @@ import { askChatbot } from "../utils/langchainChatbot";
 import logo from "../media/logo.png";
 import miniLogo from "../media/MH_logo.png";
 import { IoClose } from "react-icons/io5";
+import { supabase } from '../supabaseClient';
 
 // Bruker miljøvariabel for API-kall
 const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
@@ -29,15 +29,23 @@ const Chatbot = () => {
   const inputRef = useRef(null);
 
   useEffect(() => {
-    clearData();
-    startNewChat();
+    const initChat = async () => {
+      await clearData();
+      await startNewChat();
+    };
+  
+    initChat();
   }, []);
 
   const startNewChat = async () => {
     try {
-      const response = await axios.post(`${apiBaseUrl}/api/saveData/start`);
-      setChatId(response.data.chatId);
-      console.log("✅ Ny samtale startet med ID:", response.data.chatId);
+      const { data, error } = await supabase
+        .from('chats')
+        .insert([{ status: 'active' }])
+        .single();
+      if (error) throw error;
+      setChatId(data.id);
+      console.log("✅ Ny samtale startet med ID:", data.id);
     } catch (error) {
       console.error("❌ Feil ved oppstart av chat:", error);
     }
@@ -50,10 +58,14 @@ const Chatbot = () => {
 
   const clearData = async () => {
     try {
-      await axios.post(`${apiBaseUrl}/api/clearData`);
-      console.log("✅ userData.json tømt");
+      const { error } = await supabase
+        .from('chats')
+        .delete()
+        .eq('status', 'active');
+      if (error) throw error;
+      console.log("✅ userData tømt");
     } catch (error) {
-      console.error("❌ Feil ved tømming av userData.json:", error);
+      console.error("❌ Feil ved tømming av userData:", error);
     }
   };
 
@@ -96,12 +108,16 @@ const Chatbot = () => {
   };
 
   const saveMessage = async (message) => {
+    if (!chatId) {
+      console.error("ChatId ikke klart ennå!");
+      return;
+    }
+  
     try {
-      await axios.post(`${apiBaseUrl}/api/saveData/save`, {
-        chatId,
-        sender: message.sender,
-        text: message.text,
-      });
+      const { error } = await supabase
+        .from('messages')
+        .insert([{ chat_id: chatId, sender: message.sender, text: message.text }]);
+      if (error) throw error;
     } catch (error) {
       console.error("❌ Feil ved lagring av melding:", error);
     }
@@ -114,9 +130,17 @@ const Chatbot = () => {
     try {
       if (consent === false) {
         console.log("🚫 Samtale slettes pga. manglende samtykke.");
-        await axios.delete(`${apiBaseUrl}/api/saveData/delete/${chatId}`);
+        const { error } = await supabase
+          .from('chats')
+          .delete()
+          .eq('id', chatId);
+        if (error) throw error;
       } else {
-        await axios.post(`${apiBaseUrl}/api/saveData/finish`, { chatId });
+        const { error } = await supabase
+          .from('chats')
+          .update({ status: 'finished' })
+          .eq('id', chatId);
+        if (error) throw error;
       }
     } catch (error) {
       console.error("❌ Feil ved sletting/lagring av samtale:", error);

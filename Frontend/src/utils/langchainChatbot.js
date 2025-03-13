@@ -1,23 +1,18 @@
-const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || "http://localhost:5001"; 
+// ...existing code...
+const apiKey = process.env.REACT_APP_OPENAI_API_KEY;
 
-export const askChatbot = async (conversationMessages, systemPrompt) => {
-    try {
-        const response = await fetch(`${apiBaseUrl}/api/chat`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ conversationMessages, systemPrompt })
-        });
-
-        if (!response.ok) {
-            throw new Error(`API-feil: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        return data.response;
-    } catch (error) {
-        console.error("❌ Feil ved kommunikasjon med chatbot-API:", error);
-        return "Beklager, jeg klarte ikke å svare akkurat nå.";
-    }
-};
+fetch('https://api.openai.com/v1/engines/davinci-codex/completions', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${apiKey}`
+  },
+  body: JSON.stringify({
+    prompt: 'Translate the following English text to French: "Hello, how are you?"',
+    max_tokens: 60
+  })
+})
+.then(response => response.json())
+.then(data => console.log(data))
+.catch(error => console.error('Error:', error));
+// ...existing code...
