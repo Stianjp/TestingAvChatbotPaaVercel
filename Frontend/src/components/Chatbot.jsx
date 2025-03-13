@@ -27,6 +27,7 @@ const Chatbot = () => {
   const [chatEnded, setChatEnded] = useState(false);
   const [isFinishingChat, setIsFinishingChat] = useState(false);
   const [copySuccess, setCopySuccess] = useState("");
+  const [questionCount, setQuestionCount] = useState(0);
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
@@ -100,12 +101,13 @@ const Chatbot = () => {
         userMessage,
       ]);
 
-      let systemPrompt = phaseTwoPrompt;
+      let systemPrompt = questionCount < 5 ? phaseOnePrompt : phaseTwoPrompt;
       botReply = await askChatbot(conversationMessages, systemPrompt);
 
       setMessages((prev) => [...prev, { sender: "bot", text: botReply }]);
       saveMessage({ sender: "bot", text: botReply });
 
+      setQuestionCount((prevCount) => prevCount + 1);
       setIsTyping(false);
       setLoading(false);
     }, 500);
