@@ -1,18 +1,26 @@
-// ...existing code...
-const apiKey = process.env.REACT_APP_OPENAI_API_KEY;
+export const askChatbot = async (conversationMessages, systemPrompt) => {
+  const apiKey = process.env.REACT_APP_OPENAI_API_KEY;
 
-fetch('https://api.openai.com/v1/engines/davinci-codex/completions', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${apiKey}`
-  },
-  body: JSON.stringify({
-    prompt: 'Translate the following English text to French: "Hello, how are you?"',
-    max_tokens: 60
-  })
-})
-.then(response => response.json())
-.then(data => console.log(data))
-.catch(error => console.error('Error:', error));
-// ...existing code...
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...conversationMessages,
+      ],
+    }),
+  });
+
+  const data = await response.json();
+  
+  if (!response.ok) {
+    throw new Error(`API-feil: ${data.error.message}`);
+  }
+
+  return data.choices[0].message.content;
+};
