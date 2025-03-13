@@ -9,3 +9,15 @@ Husk å legge til .env.local i .gitignore filen - denne skal ligge i mappen Fron
 .env*.local
 .vercel_build_output
 .env.local
+
+
+# Kjøre kode
+For å kjøre koden, skriv følgende kommandoer i terminalen:
+Startes fra Frondend: 
+npm run build (kjøres første gang)
+npm start
+
+hvis det feiler, kjør: 
+npm install
+npm run build
+npm start
