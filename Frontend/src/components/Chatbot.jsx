@@ -11,6 +11,7 @@ import logo from "../media/logo.png";
 import miniLogo from "../media/MH_logo.png";
 import { IoClose } from "react-icons/io5";
 import { supabase } from "../supabaseClient";
+import "../index.css";
 
 // Bruker miljøvariabel for API-kall
 const apiBaseUrl = process.env.REACT_APP_API_BASE_URL;
