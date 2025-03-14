@@ -1,6 +1,6 @@
 # TestingAvChatbotPaaVercel
 Opprett en .env.local fil i mappen Frontend og legg til:
-REACT_APP_OPENAI_API_KEY=""; # Legg til din OpenAI API nøkkel
+REACT_APP_OPENAI_API_KEY="" # Legg til din OpenAI API nøkkel
 
 # Viktig
 Husk å legge til .env.local i .gitignore filen - denne skal ligge i mappen Frontend. .gitignore skal se slik ut:
@@ -21,3 +21,7 @@ hvis det feiler, kjør:
 npm install
 npm run build
 npm start
+
+OG 
+Fra root mappen (TestingAvChatbotPaaVercel):
+node proxy.js
