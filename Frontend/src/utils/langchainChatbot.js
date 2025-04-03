@@ -10,11 +10,13 @@ export const askChatbot = async (conversationMessages, systemPrompt) => {
     }),
   });
 
-  const data = await response.json();
-
   if (!response.ok) {
-    throw new Error(`API-feil: ${data.error.message}`);
+    const errorData = await response.json().catch(() => {
+      throw new Error('Unexpected response from server');
+    });
+    throw new Error(`API error: ${errorData.error || 'Unknown error'}`);
   }
 
+  const data = await response.json();
   return data.choices[0].message.content;
 };
