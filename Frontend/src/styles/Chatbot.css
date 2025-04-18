@@ -1,17 +1,17 @@
 /* Hovedcontainer */
 .chat-container {
+  display: flex;
+  flex-direction: column;
   width: 95%; /* Bruk prosent for responsiv bredde */
   max-width: 600px;
-  height: auto; /* Gjør høyden mer fleksibel */
-  min-height: 70vh;
+  height: 90vh; /* Gjør høyden mer fleksibel */
   margin: 20px auto;
   border: 1px solid #ddd;
   border-radius: 10px;
   background-color: white;
   box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
-  display: flex;
-  flex-direction: column;
   overflow: hidden;
+  font-family: 'Arial', sans-serif; /* Bruk en sans-serif font */
 }
 
 /* Header med logo og dato */
@@ -39,6 +39,8 @@
   overflow-y: auto;   /* Enables vertical scrolling */
   display: flex;
   flex-direction: column;
+  padding: 5px;
+  min-height: 0; /* viktig for å unngå at den overflyter */
 }
 
 /* Optional: Smooth scrolling for better UX */
@@ -53,7 +55,7 @@
 .chat-bubble {
   margin: 5px 0;
   overflow-wrap: anywhere;  /* Fits all possible lenght of content inside the box */
-  max-width: 90%;
+  max-width: 80%;
 }
 
 .chat-bubble.bot {
@@ -258,6 +260,32 @@
 @keyframes typingAnimation {
   0%, 100% { opacity: 0.3; transform: translateY(0); }
   50% { opacity: 1; transform: translateY(-5px); }
+}
+/* Spinner-container */
+.spinner {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 40px;
+  height: 40px;
+  margin: auto;
+}
+
+/* Spinner-animasjon */
+.spinner img {
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+/* Keyframes for rotasjon */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 /* RESPONSIVITET */
 @media (max-width: 768px) {

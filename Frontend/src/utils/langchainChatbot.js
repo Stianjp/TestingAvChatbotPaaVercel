@@ -1,22 +1,30 @@
 export const askChatbot = async (conversationMessages, systemPrompt) => {
-  const response = await fetch('/api/chat', {
+  const apiKey = process.env.REACT_APP_OPENAI_API_KEY;
+
+  if (!apiKey) {
+    throw new Error("API key is missing. Please set the REACT_APP_OPENAI_API_KEY environment variable.");
+  }
+
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      conversationMessages,
-      systemPrompt,
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...conversationMessages,
+      ],
     }),
   });
+  
+  const data = await response.json();
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => {
-      throw new Error('Unexpected response from server');
-    });
-    throw new Error(`API error: ${errorData.error || 'Unknown error'}`);
+    throw new Error(`API-feil: ${data.error.message}`);
   }
 
-  const data = await response.json();
   return data.choices[0].message.content;
 };
