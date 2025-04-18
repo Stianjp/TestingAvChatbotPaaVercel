@@ -19,10 +19,12 @@ const finishChat = async (isFinishingChat, setIsFinishingChat, consent, chatId, 
     }
 
     // Bygg samtalen for oppsummering
-    const conversationMessages = buildConversationForGPT(messages);
+    const conversationMessages = buildConversationForGPT(messages); // Bruker hele meldingslisten
+    
 
-    // Bruk summaryPrompt fra chatbotPrompts.js
+    // Generer oppsummering
     const summary = await askChatbot(conversationMessages, summaryPrompt);
+    console.log("🛠️ Oppsummering fra GPT:", summary);
 
     // Legg til oppsummeringen som en melding fra boten
     const summaryMessages = [
@@ -31,7 +33,7 @@ const finishChat = async (isFinishingChat, setIsFinishingChat, consent, chatId, 
       { sender: "bot", text: "Takk for samtalen!😊 Ha en fin dag videre!\nHvis du vil starte på nytt, trykk på knappen nedenfor 👇" },
     ];
 
-    setMessages((prev) => [...prev, ...summaryMessages]);
+    setMessages((prev) => [...prev, ...summaryMessages]); // Oppdater meldingslisten med oppsummeringen
 
     // Lagre oppsummeringen i databasen
     for (const message of summaryMessages) {
