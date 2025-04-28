@@ -1,16 +1,24 @@
 // src/components/Chatbot.jsx
 import React, { useState, useEffect, useRef } from "react";
+
+// Import av prompter og initial melding
 import {
   initialMessage,
   dynamicSystemPrompt,
   summaryPrompt,
 } from "../data/chatbotPrompts";
+
+// Import at styler og ikoner
 import "../styles/Chatbot.css";
 import logo from "../media/logo.png";
 import miniLogo from "../media/avatar.png";
 import { IoClose } from "react-icons/io5";
-import { supabase } from "../supabaseClient";
 import kryssIkon from "../media/kryssikon.png";
+
+// import av databasemodellen
+import { supabase } from "../supabaseClient";
+
+// Import av hjelpefunksjoner
 import saveMessage from "../utils/saveMessage";
 import buildConversationForGPT from "../utils/buildConversation";
 import handleConsent from "../utils/handleConsent";
@@ -18,7 +26,10 @@ import copyToClipboard from "../utils/copyToClipboard";
 import scrollToBottom from "../utils/scrollToBottom";
 import finishChat from "../utils/finishChat";
 import sendMessage from "../utils/sendMessage";
+import startNewChat from "utils/startNewChat";
+import restartChat from "../utils/restartChat";
 
+// Funksjonen for chatbot-komponenten
 const Chatbot = () => {
   const [messages, setMessages] = useState([
     { sender: "bot", text: initialMessage },
@@ -32,65 +43,94 @@ const Chatbot = () => {
   const [isFinishingChat, setIsFinishingChat] = useState(false);
   const [copySuccess, setCopySuccess] = useState("");
   const [hoverText, setHoverText] = useState("Klikk for å kopiere ID");
-  const [hoverXbottom, setHoverXbottom] = useState("Klikk for å avslutte samtalen og få en oppsummering");
+  const [hoverXbottom, setHoverXbottom] = useState(
+    "Klikk for å avslutte samtalen og få en oppsummering"
+  );
 
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
+  /*
+  ------------------
+  Hjelpefunksjoner: 
+  */
+  // Håndter samtykke direkte
+  const handleConsentClick = (userConsent) => {
+    handleConsent(
+      userConsent,
+      setConsent,
+      setMessages,
+      startNewChat,
+      chatId,
+      kryssIkon
+    );
+  };
+
+  // Håndter avslutning av chat direkte
+  const handleFinishChat = () => {
+    finishChat(
+      isFinishingChat,
+      setIsFinishingChat,
+      consent,
+      chatId,
+      messages,
+      setMessages,
+      setChatEnded,
+      summaryPrompt
+    );
+  };
+
+  // Håndter sending av melding direkte
+  const handleSendMessage = () => {
+    sendMessage(
+      input,
+      setInput,
+      setMessages,
+      setLoading,
+      setIsTyping,
+      chatId,
+      consent,
+      messages,
+      dynamicSystemPrompt,
+      inputRef
+    );
+  };
+
+  // Håndter kopiering av chat-ID direkte
+  const handleCopyToClipboard = () => {
+    copyToClipboard(chatId, setCopySuccess);
+  };
+
+  // Håndter restart av chat direkte
+  const handleRestartChat = () => {
+    restartChat(
+      setChatId,
+      setConsent,
+      setChatEnded,
+      setIsFinishingChat,
+      setMessages
+    );
+  };
+  /*
+  ------------------
+  useEffect Hooks:
+  */
+ // Håndterer endringer i chatId og oppdaterer meldingslisten
   useEffect(() => {
     if (consent) {
-      startNewChat();
+      startNewChat(setChatId);
     }
   }, [consent]);
-
-  const startNewChat = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("chats")
-        .insert([{ status: "active" }])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      setChatId(data.id);
-      console.log("✅ Ny samtale startet med ID:", data.id);
-    } catch (error) {
-      console.error("❌ Feil ved oppstart av chat:", error);
-    }
-  };
-
-  // Flytt handleConsentWrapper inn i Chatbot-komponenten
-  const handleConsentWrapper = (userConsent) => {
-    handleConsent(userConsent, setConsent, setMessages, startNewChat, chatId, kryssIkon);
-  };
-
+  // Håndterer at det scrolles til bunnen av chatvinduet når nye meldinger legges til
   useEffect(() => {
     scrollToBottom(messagesEndRef);
     if (inputRef.current) inputRef.current.focus();
   }, [messages]);
 
-  const handleSendMessage = () => {
-    sendMessage(input, setInput, setMessages, setLoading, setIsTyping, chatId, consent, messages, dynamicSystemPrompt, inputRef);
-  };
-
-  const finishChatWrapper = () => {
-    finishChat(isFinishingChat, setIsFinishingChat, consent, chatId, messages, setMessages, setChatEnded, summaryPrompt);
-  };
-
-  const restartChat = async () => {
-    setChatId(null);
-    setConsent(null);
-    setChatEnded(false);
-    setIsFinishingChat(false);
-    setMessages([{ sender: "bot", text: initialMessage }]);
-    startNewChat();
-  };
-
-  const scrollToBottom = () => {
-    if (messagesEndRef.current)
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-  };
+  /*
+  ------------------
+  Funksjoner for håndtering av chat:
+  */
 
   const handleInputChange = (e) => {
     setInput(e.target.value);
@@ -98,21 +138,21 @@ const Chatbot = () => {
     e.target.style.height = `${e.target.scrollHeight}px`;
   };
 
-  // Funksjon for å håndtere kopiering ved trykk av chat ID
-  const handleCopyToClipboard = () => {
-    copyToClipboard(chatId, setCopySuccess);
-  };
-
   const handleInputBlur = () => {
-    document.activeElement.blur(); // Fjern fokus fra inputfeltet
+    document.activeElement.blur();
   };
-
+  // --------------------
+  // HTML-struktur:
   return (
     <div className="chat-container">
       <header className="chat-header">
         <img src={logo} alt="MeyerHaugen" className="logo" />
         <p className="chat-date">
-          {new Date().toLocaleDateString("no-NO", { weekday: "long", day: "numeric", month: "long" })}
+          {new Date().toLocaleDateString("no-NO", {
+            weekday: "long",
+            day: "numeric",
+            month: "long",
+          })}
         </p>
         {chatId && (
           <p
@@ -121,7 +161,8 @@ const Chatbot = () => {
             title={hoverText}
             style={{ cursor: "pointer" }}
           >
-            Chat ID: <span style={{textDecoration: "underline" }}>{chatId}</span> 
+            Chat ID:{" "}
+            <span style={{ textDecoration: "underline" }}>{chatId}</span>
           </p>
         )}
       </header>
@@ -136,7 +177,9 @@ const Chatbot = () => {
                 <div className="bot-avatar-placeholder"></div>
               )
             ) : null}
-            <div className={`chat-bubble ${msg.sender}`}>{msg.jsx ? msg.jsx : msg.text}</div>
+            <div className={`chat-bubble ${msg.sender}`}>
+              {msg.jsx ? msg.jsx : msg.text}
+            </div>
           </div>
         ))}
 
@@ -153,16 +196,23 @@ const Chatbot = () => {
 
       {chatEnded && (
         <div className="restart-chat">
-          <button className="restart-button" onClick={restartChat}>
-                Start ny samtale
+          <button className="restart-button" onClick={handleRestartChat}>
+            Start ny samtale
           </button>
         </div>
       )}
 
       {consent === null && (
         <div className="consent-buttons">
-          <button className="accept" onClick={() => handleConsentWrapper(true)}>Godta</button>
-          <button className="decline" onClick={() => handleConsentWrapper(false)}>Avslå</button>
+          <button className="accept" onClick={() => handleConsentClick(true)}>
+            Godta
+          </button>
+          <button
+            className="decline"
+            onClick={() => handleConsentClick(false)}
+          >
+            Avslå
+          </button>
         </div>
       )}
 
@@ -176,13 +226,18 @@ const Chatbot = () => {
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
-                if (!chatEnded) handleSendMessage(); // Kun send hvis chat ikke er avsluttet
+                if (!chatEnded) handleSendMessage();
               }
             }}
-            onBlur={handleInputBlur} // Koble til funksjonen
-            disabled={loading || chatEnded} // Deaktivert hvis chat er avsluttet
+            onBlur={handleInputBlur}
+            disabled={loading || chatEnded}
             rows={1}
-            style={{ resize: "none", minHeight: "30px", maxHeight: "200px", overflowY: "auto" }}
+            style={{
+              resize: "none",
+              minHeight: "30px",
+              maxHeight: "200px",
+              overflowY: "auto",
+            }}
           />
           <button onClick={handleSendMessage} disabled={loading || chatEnded}>
             ➤
@@ -190,17 +245,17 @@ const Chatbot = () => {
           {!chatEnded && (
             <div className="chat-actions">
               {!isFinishingChat ? (
-                <button 
-                  onClick={finishChatWrapper} 
+                <button
+                  onClick={handleFinishChat}
                   title={hoverXbottom}
-                  disabled={isFinishingChat} 
-                  style={{ 
-                    fontSize: "20px", 
-                    display: "flex", 
-                    alignItems: "center", 
-                    justifyContent: "center", 
-                    padding: "0.5rem", 
-                    lineHeight: "1" 
+                  disabled={isFinishingChat}
+                  style={{
+                    fontSize: "20px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "0.5rem",
+                    lineHeight: "1",
                   }}
                 >
                   <IoClose style={{ fontSize: "inherit" }} />
@@ -218,4 +273,5 @@ const Chatbot = () => {
   );
 };
 
-export default Chatbot;
+export default Chatbot; // export til index.js
+// slik at komponenten kan brukes i appen
