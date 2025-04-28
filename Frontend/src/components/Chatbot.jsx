@@ -26,7 +26,7 @@ import copyToClipboard from "../utils/copyToClipboard";
 import scrollToBottom from "../utils/scrollToBottom";
 import finishChat from "../utils/finishChat";
 import sendMessage from "../utils/sendMessage";
-import startNewChat from "utils/startNewChat";
+import startNewChat from "../utils/startNewChat";
 import restartChat from "../utils/restartChat";
 
 // Funksjonen for chatbot-komponenten
