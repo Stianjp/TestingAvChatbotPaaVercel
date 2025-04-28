@@ -60,7 +60,7 @@ const createConsentMessages = (userConsent, kryssIkon) => { // Funksjon for å l
         Deretter utforsker vi hva som motiverer deg og gir deg mening, med inspirasjon fra Ikigai - en japansk metode. 
         Ved å trykke { " " }  <img src={kryssIkon} alt="kryss" style={{ width: "20px", verticalAlign: "middle" }} />
         { " " }, vil du få en oppsummering av samtalen vår.
-        Du kan avslutte samtalen når du vil, men for best utbytte anbefaler vi å ta deg tid.
+        Du kan avslutte samtalen etter 15 spørsmål er besvart, men for best utbytte anbefaler vi å ta deg tid.
       </>
     ),
   };
